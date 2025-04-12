@@ -24,8 +24,8 @@ async function error(message: string) {
     return unlabeled(message, "gray");
 }
 async function codeforces(id: string, rating: number | null) {
-    var color = "FFFFFF";
-    var message = "unrated";
+    let color = "FFFFFF";
+    let message = "unrated";
     if (rating) {
         if (rating < 1200) {
             message = `Newbie ${rating}`;
@@ -96,23 +96,22 @@ export async function GET(request: Request) {
         return error("param:id not found");
     }
     if (oj == "codeforces") {
-        const response = await fetch(`https://codeforces.com/api/user.rating?handle=${id}`);
+        const response = await fetch(`https://codeforces.com/api/user.info?handles=${id}`);
         if (!response.ok) {
             return error(`${oj}:${id} not found`);
         }
         const json = await response.json();
-        const result: Array<any> = json["result"];
-        if (result.length == 0) {
-            return codeforces(id, null);
+        if (json["status"] != "OK") {
+            return error(`${oj}:${id} not found`);
         }
-        const rating = result[result.length - 1]["newRating"];
+        const rating: number | null = json["result"][0]["rating"];
         return codeforces(id, rating);
     }
     if (oj == "atcoder") {
         const response = await fetch(`https://atcoder.jp/users/${id}`);
         const html = await response.text();
         const document = new JSDOM(html).window.document;
-        var ratings = document.querySelector('table.dl-table.mt-2').children[0].children[1].children[1] as HTMLElement;
+        let ratings = document.querySelector('table.dl-table.mt-2')?.children[0].children[1].children[1] as HTMLElement;
         if (ratings?.children.length == 1) {
             ratings = ratings.children[0] as HTMLElement;
         } else {
